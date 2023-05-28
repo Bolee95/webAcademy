@@ -12,7 +12,7 @@ const s3 = new S3({
 
 export async function uploadJSON(name, jsonData, onUploaded) {
   const request = s3.putObject({
-    Bucket: "web-academy",
+    Bucket: "web25bucket",
     Key: name,
     Body: JSON.stringify(jsonData),
     ContentType: "application/json; charset=utf-8",
@@ -21,6 +21,10 @@ export async function uploadJSON(name, jsonData, onUploaded) {
   // Returns CID trough response headers
   request.on("httpHeaders", (_, headers) => {
     onUploaded(headers["x-amz-meta-cid"]);
+  });
+
+  request.on("error", (error) => {
+    console.log(error);
   });
 
   request.send();

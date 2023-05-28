@@ -7,21 +7,30 @@ import {
   Spacer,
   VStack,
   Select,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { ColorModeSwitcher } from "./ColorModeSwitcher";
-
-import { useState } from "react";
 import { ethers } from "ethers";
 
-const Header = ({
-  user,
-  viewOptions,
-  isConnecting,
-  isConnected,
-  handleConnectWallet,
-  handleViewOptionSelect,
-}) => {
-  const [isMinting, setIsMinting] = useState(false);
+import { ColorModeSwitcher } from "./ColorModeSwitcher";
+import CreateModal from "./CreateModal";
+
+const Header = ({ headerData }) => {
+  const {
+    user,
+    onCreateNFT,
+    isMinting,
+    viewOptions,
+    isConnecting,
+    isConnected,
+    handleConnectWallet,
+    handleViewOptionSelect,
+  } = headerData;
+
+  const {
+    isOpen: isOpenCreate,
+    onOpen: onOpenCreate,
+    onClose: onCloseCreate,
+  } = useDisclosure();
 
   const shrinkAddress = (address) => {
     return address.substring(0, 8) + "..." + address.substring(34, 42);
@@ -42,11 +51,12 @@ const Header = ({
     >
       <HStack spacing={5}>
         <Button
-          loadingText="Minting..."
           size={{ base: "md", md: "md", lg: "lg" }}
           leftIcon={<AddIcon />}
           isDisabled={!isConnected || isMinting}
           isLoading={isMinting}
+          loadingText="Minting..."
+          onClick={onOpenCreate}
         >
           Create NFT
         </Button>
@@ -78,6 +88,11 @@ const Header = ({
       >
         {isConnected ? "Connected" : "Connect"}
       </Button>
+      <CreateModal
+        isOpen={isOpenCreate}
+        onClose={onCloseCreate}
+        onCreate={onCreateNFT}
+      />
     </Flex>
   );
 };
