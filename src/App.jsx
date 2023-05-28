@@ -4,12 +4,12 @@ import { ColorModeSwitcher } from "./ColorModeSwitcher";
 import { BrowserProvider } from "ethers";
 import { useState, useEffect } from "react";
 
-import Counter from "./Counter";
-
 function App() {
   const [provider, setProvider] = useState(null);
+  const [setup, setSetup] = useState({
+    signer: null,
+  });
   const [isLoading, setIsLoading] = useState(false);
-  const [account, setAccount] = useState(null);
 
   const toast = useToast({
     position: "top-right",
@@ -18,39 +18,67 @@ function App() {
   });
 
   useEffect(() => {
-    if (window.ethereum) {
+    const setupProvider = async () => {
+      if (window.ethereum) {
+        const provider = new BrowserProvider(window.ethereum);
+        setProvider(provider);
+      }
+    };
+
+    setupProvider();
+  }, []);
+
+  useEffect(() => {
+    if (provider) {
+      loadAccounts();
+
       window.ethereum.on("accountsChanged", (accounts) => {
-        if (accounts && accounts.length > 0) {
-          setAccount(accounts[0]);
-        } else {
-          setAccount(null);
-        }
+        updateAccounts(accounts);
+      });
+
+      window.ethereum.on("disconnect", () => {
+        loadAccounts();
       });
 
       window.ethereum.on("chainChanged", () => {
         window.location.reload();
       });
 
-      setProvider(new BrowserProvider(window.ethereum));
-
       return () => {
         window.ethereum?.removeAllListeners();
       };
     }
-  }, []);
+  }, [provider]);
+
+  const loadAccounts = async () => {
+    const accounts = await provider.send("eth_accounts", []);
+    updateAccounts(accounts);
+  };
+
+  const updateAccounts = async (accounts) => {
+    if (provider) {
+      if (accounts && accounts.length > 0) {
+        setSetup({
+          signer: await provider.getSigner(),
+        });
+      } else {
+        setSetup({});
+      }
+    }
+  };
 
   const handleConnectWallet = async () => {
     setIsLoading(true);
-
+    
     try {
       const accounts = await provider.send("eth_requestAccounts", []);
-      setAccount(accounts[0]);
       toast({ title: "Wallet connected", status: "success" });
+      updateAccounts(accounts);
     } catch (error) {
       toast({
         title: "Wallet connection failed",
         status: "error",
-        description: error.message,
+        description: error.code,
       });
     }
 
@@ -62,11 +90,11 @@ function App() {
       <Center flexDirection={"column"}>
         <VStack>
           <ColorModeSwitcher />
-          {account && <Text>Active address: {account}</Text>}
-          {!account && (
+          {setup.signer && <Text>Active address: {setup.signer.address}</Text>}
+          {!setup.signer && (
             <Button
               variant={"solid"}
-              background={"teal"}
+              colorScheme={"blue"}
               size={"lg"}
               p={4}
               leftIcon={<LinkIcon />}
@@ -76,7 +104,7 @@ function App() {
               Connect wallet
             </Button>
           )}
-          {account && <Counter provider={provider} />}
+          {/* {data && <Counter provider={provider} />} */}
         </VStack>
       </Center>
     </Flex>
