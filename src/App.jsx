@@ -4,7 +4,6 @@ import { ColorModeSwitcher } from "./ColorModeSwitcher";
 import { BrowserProvider } from "ethers";
 import { useState, useEffect } from "react";
 
-function App() {
 const App = () => {
   const [provider, setProvider] = useState(null);
   const [user, setUser] = useState({
@@ -89,15 +88,15 @@ const App = () => {
       <Center flexDirection={"column"}>
         <VStack>
           <ColorModeSwitcher />
-          {setup.signer && <Text>Active address: {setup.signer.address}</Text>}
-          {!setup.signer && (
+          {user.signer && <Text>Active address: {user.signer.address}</Text>}
+          {!user.signer && (
             <Button
               variant={"solid"}
               colorScheme={"blue"}
               size={"lg"}
               p={4}
               leftIcon={<LinkIcon />}
-              isLoading={isLoading}
+              isLoading={isConnecting}
               onClick={handleConnectWallet}
             >
               Connect wallet
