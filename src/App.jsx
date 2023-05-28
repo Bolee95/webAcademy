@@ -1,10 +1,12 @@
-import { Flex, Center, VStack, Button, Text, useToast } from "@chakra-ui/react";
-import { LinkIcon } from "@chakra-ui/icons";
-import { ColorModeSwitcher } from "./ColorModeSwitcher";
+import { Box, useToast } from "@chakra-ui/react";
 import { BrowserProvider } from "ethers";
 import { useState, useEffect } from "react";
 
-function App() {
+import Header from "./Header";
+import Gallery from "./Gallery";
+
+import DemoData from "./demo/DemoNFTData.json";
+
 const App = () => {
   const [provider, setProvider] = useState(null);
   const [user, setUser] = useState({
@@ -18,6 +20,8 @@ const App = () => {
     isClosable: true,
     duration: 3000,
   });
+
+  const viewOptions = ["All", "My NFTs", "Offered", "My offers"];
 
   useEffect(() => {
     const setupProvider = async () => {
@@ -84,29 +88,26 @@ const App = () => {
     setIsConnecting(false);
   };
 
+  const handleViewOptionSelect = (event) => {
+    console.log(event.target.value);
+  };
+
+  const isConnected = () => {
+    return user.signer !== null;
+  };
+
   return (
-    <Flex flexDirection={"column"} minH={"80vh"} justifyContent={"center"}>
-      <Center flexDirection={"column"}>
-        <VStack>
-          <ColorModeSwitcher />
-          {setup.signer && <Text>Active address: {setup.signer.address}</Text>}
-          {!setup.signer && (
-            <Button
-              variant={"solid"}
-              colorScheme={"blue"}
-              size={"lg"}
-              p={4}
-              leftIcon={<LinkIcon />}
-              isLoading={isLoading}
-              onClick={handleConnectWallet}
-            >
-              Connect wallet
-            </Button>
-          )}
-          {/* {data && <Counter provider={provider} />} */}
-        </VStack>
-      </Center>
-    </Flex>
+    <Box>
+      <Header
+        user={user}
+        viewOptions={viewOptions}
+        isConnecting={isConnecting}
+        isConnected={isConnected()}
+        handleViewOptionSelect={handleViewOptionSelect}
+        handleConnectWallet={handleConnectWallet}
+      />
+      <Gallery nftData={DemoData} />
+    </Box>
   );
 };
 
