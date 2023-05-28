@@ -5,14 +5,16 @@ import { BrowserProvider } from "ethers";
 import { useState, useEffect } from "react";
 
 function App() {
+const App = () => {
   const [provider, setProvider] = useState(null);
-  const [setup, setSetup] = useState({
+  const [user, setUser] = useState({
     signer: null,
+    balance: 0,
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const toast = useToast({
-    position: "top-right",
+    position: "bottom-right",
     isClosable: true,
     duration: 3000,
   });
@@ -36,10 +38,6 @@ function App() {
         updateAccounts(accounts);
       });
 
-      window.ethereum.on("disconnect", () => {
-        loadAccounts();
-      });
-
       window.ethereum.on("chainChanged", () => {
         window.location.reload();
       });
@@ -58,18 +56,19 @@ function App() {
   const updateAccounts = async (accounts) => {
     if (provider) {
       if (accounts && accounts.length > 0) {
-        setSetup({
+        setUser({
           signer: await provider.getSigner(),
+          balance: await provider.getBalance(accounts[0]),
         });
       } else {
-        setSetup({});
+        setUser({ signer: null, balance: 0 });
       }
     }
   };
 
   const handleConnectWallet = async () => {
-    setIsLoading(true);
-    
+    setIsConnecting(true);
+
     try {
       const accounts = await provider.send("eth_requestAccounts", []);
       toast({ title: "Wallet connected", status: "success" });
@@ -82,7 +81,7 @@ function App() {
       });
     }
 
-    setIsLoading(false);
+    setIsConnecting(false);
   };
 
   return (
@@ -109,6 +108,6 @@ function App() {
       </Center>
     </Flex>
   );
-}
+};
 
 export default App;
