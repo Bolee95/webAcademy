@@ -57,7 +57,7 @@ const Header = ({
           minW={"150px"}
           leftIcon={<AddIcon />}
           onClick={handleCreateClick}
-          isDisabled={isMinting}
+          isDisabled={isMinting || !user.signer}
           isLoading={isMinting}
           loadingText={"Minting..."}
         >

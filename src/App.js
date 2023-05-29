@@ -92,6 +92,11 @@ const App = () => {
   };
 
   const handleCreateNFT = async (data) => {
+    if (!collectionService) {
+      toast({ title: "No collection service" });
+      return;
+    }
+
     setIsMinting(true);
 
     const metadata = {
@@ -99,32 +104,39 @@ const App = () => {
       image: data.imageUrl,
     };
 
-    await uploadJSON(Date.now().toString(), metadata, (cid) => {
-      console.log(collectionService);
-      if (collectionService) {
-        console.log(cid);
-
-        console.log(collectionService);
-
-        collectionService.mint(user.signer, cid, data.price).then((tx) => {
-          toast({
-            title: "Create NFT transaction send",
-            status: "success",
-            description: tx.hash,
-          });
-
-          setIsMinting(false);
-
-          provider.once(tx.hash, () => {
-            toast({
-              title: "New NFT Created!",
-              status: "success",
-            });
-
-            // FIXME Refresh the list of nfts because maybe somenone also create a new NFT
-          });
+    const cid = await uploadJSON(Date.now().toString(), metadata).catch(
+      (error) => {
+        toast({
+          title: "Error while uploading metadata",
+          status: "error",
+          description: error.code,
         });
       }
+    );
+
+    const { hash: txHash } = await collectionService
+      .mint(user.signer, cid, data.price)
+      .catch((error) => {
+        toast({
+          title: "Error while executing `mint` transaction",
+          status: "error",
+          description: error.description,
+        });
+      });
+
+    toast({
+      title: "Create NFT transaction send",
+      status: "success",
+      description: txHash,
+    });
+
+    setIsMinting(false);
+
+    provider.once(txHash, () => {
+      toast({
+        title: "New NFT Created!",
+        status: "success",
+      });
     });
   };
 

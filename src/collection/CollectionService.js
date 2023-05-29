@@ -1,11 +1,11 @@
 import { Contract } from "ethers";
-import abi from "./abi.json";
+import DemoCollectionAbi from "./DemoCollectionAbi.json";
 
 export default class CollectionService {
   constructor(provider) {
     this.contract = new Contract(
       "0xC7c9aF125D41eDCE1754FDA781268ecE3918a159",
-      abi,
+      DemoCollectionAbi,
       provider
     );
   }
