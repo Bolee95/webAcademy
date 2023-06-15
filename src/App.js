@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@chakra-ui/react";
 
 import Header from "./Header";
+import Gallery from "./Gallery";
 import CollectionService from "./collection/CollectionService";
 import { uploadJSON } from "./services/IPFSService";
 
@@ -16,6 +17,8 @@ const App = () => {
   });
   const [isConnecting, setIsConnecting] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
+  const [list, setList] = useState([]);
+  const [view, setView] = useState("All NFTs");
 
   const toast = useToast({
     position: "bottom-right",
@@ -23,7 +26,7 @@ const App = () => {
     duration: 3000,
   });
 
-  const viewOptions = ["All NFTs", "My NFTs", "Offered NFTs", "My Offers"];
+  const viewOptions = ["All NFTs", "My NFTs"/*, "Offered NFTs", "My Offers"*/];
 
   useEffect(() => {
     const setupProvider = async () => {
@@ -39,7 +42,12 @@ const App = () => {
   useEffect(() => {
     if (provider) {
       loadAccounts();
-      setCollectionService(new CollectionService(provider));
+
+      const _collectionService = new CollectionService(provider);
+
+      _collectionService.getAllNFTs().then((_list) => setList(_list));
+
+      setCollectionService(_collectionService);
 
       window.ethereum.on("accountsChanged", (accounts) => {
         updateAccounts(accounts);
@@ -54,6 +62,11 @@ const App = () => {
       };
     }
   }, [provider]);
+
+  const refreshGallery = async () => {
+    if (collectionService)
+      collectionService.getAllNFTs().then((_list) => setList(_list));
+  };
 
   const loadAccounts = async () => {
     const accounts = await provider.send("eth_accounts", []);
@@ -147,12 +160,11 @@ const App = () => {
         isConnecting={isConnecting}
         isMinting={isMinting}
         viewOptions={viewOptions}
-        handleViewOptionSelect={(e) => {
-          console.log(e.target.value);
-        }}
+        handleViewOptionSelect={(e) => setView(e.target.value)}
         handleConnect={handleConnectWallet}
         handleCreateNFT={handleCreateNFT}
       />
+      <Gallery list={list} refreshGallery={refreshGallery} view={view} />
     </>
   );
 };

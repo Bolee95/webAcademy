@@ -1,5 +1,6 @@
 import { Contract } from "ethers";
 import DemoCollectionAbi from "./DemoCollectionAbi.json";
+import { getMetadata } from "../services/IPFSService";
 
 export default class CollectionService {
   constructor(provider) {
@@ -11,7 +12,20 @@ export default class CollectionService {
   }
 
   async getAllNFTs() {
-    return await this.contract.getAllTokensData();
+    const data = await this.contract.getAllTokensData();
+
+    const nfts = await Promise.all(
+      data.map(async (nft) => {
+        const metadata = await getMetadata(nft.uri);
+
+        return {
+          ...nft,
+          ...metadata,
+        };
+      })
+    );
+
+    return nfts;
   }
 
   async getNFT(id) {

@@ -12,6 +12,7 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { parseEther } from "ethers";
 
 const CreateModal = ({ isOpen, onCreate, onClose }) => {
   const [formData, setFormData] = useState({
@@ -55,10 +56,17 @@ const CreateModal = ({ isOpen, onCreate, onClose }) => {
             <FormControl p={4} isRequired>
               <FormLabel>Desired price</FormLabel>
               <Input
+                type="number"
                 placeholder="0.01 ETH"
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
+                onChange={(e) => {
+                  try {
+                    const price = parseEther(e.target.value);
+
+                    setFormData({ ...formData, price });
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
               />
             </FormControl>
           </ModalBody>
